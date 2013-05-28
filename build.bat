@@ -12,9 +12,9 @@ runtime\bin\python\python_mcp runtime\recompile.py %*
 runtime\bin\python\python_mcp runtime\reobfuscate.py %*
 
 echo == Removing "hunternif" ==
-rmdir "%FORGE_HOME%\mcp\src\minecraft\hunternif"
+rmdir /s /q "%FORGE_HOME%\mcp\src\minecraft\hunternif"
 echo == Removing "mods" ==
-rmdir "%FORGE_HOME%\mcp\src\minecraft\mods"
+rmdir /s /q "%FORGE_HOME%\mcp\src\minecraft\mods"
 
 set WINRAR=C:\Program Files\WinRAR\Rar.exe
 if not exist "%WINRAR%" goto noWinRAR
