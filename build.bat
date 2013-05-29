@@ -1,9 +1,9 @@
 @echo off
 if "%FORGE_HOME%" == "" goto forgeNotSet
 
-echo == Copying "hunternif" ==
+echo ^> Copying "hunternif"
 xcopy src\hunternif /s /y "%FORGE_HOME%\mcp\src\minecraft\hunternif\"
-echo == Copying "mods" ==
+echo ^> Copying "mods"
 xcopy src\mods /s /y "%FORGE_HOME%\mcp\src\minecraft\mods\"
 
 set MOD_SRC_DIR=%cd%
@@ -11,22 +11,23 @@ cd "%FORGE_HOME%\mcp"
 runtime\bin\python\python_mcp runtime\recompile.py %*
 runtime\bin\python\python_mcp runtime\reobfuscate.py %*
 
-echo == Removing "hunternif" ==
+echo ^> Removing "hunternif"
 rmdir /s /q "%FORGE_HOME%\mcp\src\minecraft\hunternif"
-echo == Removing "mods" ==
+echo ^> Removing "mods"
 rmdir /s /q "%FORGE_HOME%\mcp\src\minecraft\mods"
 
-set WINRAR=C:\Program Files\WinRAR\Rar.exe
+set WINRAR=C:\Program Files\WinRAR\WinRAR.exe
 if not exist "%WINRAR%" goto noWinRAR
 echo Found WinRAR
 cd "%FORGE_HOME%\mcp\reobf\minecraft"
-echo == Copying resource files to "reobf" ==
+echo ^> Copying resource files to "reobf"
 xcopy "%MOD_SRC_DIR%\src\mods" /s /y "%FORGE_HOME%\mcp\reobf\minecraft\mods\"
 xcopy "%MOD_SRC_DIR%\src\mcmod.info" /y "%FORGE_HOME%\mcp\reobf\minecraft\"
 xcopy "%MOD_SRC_DIR%\src\*.png" /y "%FORGE_HOME%\mcp\reobf\minecraft\"
-echo == Creating achive ==
+echo ^> Creating archive
 rem TODO retreive the mod name and version
-"%WINRAR%" a -r -ep1 mod.zip ./*
+"%WINRAR%" a -afzip -r mod.zip ./*
+echo ^> Done
 pause
 goto end
 
@@ -42,3 +43,4 @@ goto end
 
 
 :end
+cd %MOD_SRC_DIR%

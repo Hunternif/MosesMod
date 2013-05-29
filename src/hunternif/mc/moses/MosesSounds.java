@@ -6,9 +6,14 @@ import net.minecraftforge.event.ForgeSubscribe;
 public class MosesSounds {
 	public static final String SEA_PARTING = "sea_parting";
 	public static final String SEA_CLOSING = "sea_closing";
+	public static final String LAVA_PARTING = "lava_parting";
+	public static final String LAVA_CLOSING = "lava_closing";
 	public static final String MOSES = "moses";
+	public static final String BURNT_STAFF = "burnt_staff";
 	
-	private static String[] sounds = {SEA_PARTING, SEA_CLOSING, MOSES};
+	//FIXME Find out why lava sounds won't play in stereo
+	
+	private static String[] sounds = {SEA_PARTING, SEA_CLOSING, MOSES, LAVA_PARTING, LAVA_CLOSING, BURNT_STAFF};
 	
 	@ForgeSubscribe
 	public void onSound(SoundLoadEvent event) {

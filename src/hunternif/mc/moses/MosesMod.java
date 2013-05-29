@@ -1,6 +1,8 @@
 package hunternif.mc.moses;
 
 import hunternif.mc.moses.block.TransparentBlock;
+import hunternif.mc.moses.data.MosesBlockProvider;
+import hunternif.mc.moses.item.BurntStaffOfMoses;
 import hunternif.mc.moses.item.StaffOfMoses;
 import hunternif.mc.moses.material.MaterialWaterBlocker;
 
@@ -44,7 +46,7 @@ import cpw.mods.fml.common.registry.TickRegistry;
 public class MosesMod {
 	public static final String ID = "MosesMod";
 	public static final String NAME = "Moses Mod";
-	public static final String VERSION = "1.0.2";
+	public static final String VERSION = "1.1";
 	public static final String CHANNEL = ID;
 	
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
@@ -53,15 +55,20 @@ public class MosesMod {
 	public static List<Item> itemList = new ArrayList<Item>();
 	private static int staffOfMosesId;
 	public static Item staffOfMoses;
+	private static int burntStaffOfMosesId;
+	public static Item burntStaffOfMoses;
 	private static int passageHalfWidth;
-	private static double passageLength;
+	public static double passageLength;
 	private static int waterBlockerID;
 	public static Block waterBlocker;
 	public static Material materialWaterBlocker = new MaterialWaterBlocker();
 	
+	public static MosesBlockProvider mosesBlockProvider = new MosesBlockProvider();
+	
 	public static Configuration config;
 	
 	public List<EntityItem> tossedSticks = new ArrayList<EntityItem>();
+	public List<EntityItem> tossedStaffs = new ArrayList<EntityItem>();
 	public TickHandler tickHandler = new TickHandler();
 	
 	@Instance(ID)
@@ -79,6 +86,7 @@ public class MosesMod {
 		config.load();
 		
 		staffOfMosesId = config.getItem("staffOfMoses", 26999).getInt();
+		burntStaffOfMosesId = config.getItem("burntStaffOfMoses", 26998).getInt();
 		waterBlockerID = config.getBlock("waterBlocker", 2699).getInt();
 		
 		Property propHalfWidth = config.get(Configuration.CATEGORY_GENERAL, KEY_PASSAGE_HALF_WIDTH, 2);
@@ -100,6 +108,12 @@ public class MosesMod {
 		((StaffOfMoses)staffOfMoses).passageHalfWidth = passageHalfWidth;
 		((StaffOfMoses)staffOfMoses).maxPassageLength = passageLength;
 		
+		burntStaffOfMoses = new BurntStaffOfMoses(burntStaffOfMosesId).setCreativeTab(CreativeTabs.tabTools).setUnlocalizedName("burntStaffOfMoses");
+		LanguageRegistry.addName(burntStaffOfMoses, "Burnt Staff Of Moses");
+		itemList.add(burntStaffOfMoses);
+		((BurntStaffOfMoses)burntStaffOfMoses).passageHalfWidth = passageHalfWidth;
+		((BurntStaffOfMoses)burntStaffOfMoses).maxPassageLength = passageLength;
+		
 		waterBlocker = new TransparentBlock(waterBlockerID, materialWaterBlocker).setStepSound(Block.soundGlassFootstep).setUnlocalizedName("waterBlocker").setCreativeTab(CreativeTabs.tabMisc);
 		GameRegistry.registerBlock(waterBlocker, "waterBlocker");
 		LanguageRegistry.addName(waterBlocker, "Water Blocker");
@@ -118,6 +132,8 @@ public class MosesMod {
 		ItemStack stack = event.entityItem.getEntityItem(); 
 		if (stack.itemID == Item.stick.itemID) {
 			tossedSticks.add(event.entityItem);
+		} else if (stack.itemID == staffOfMoses.itemID) {
+			tossedStaffs.add(event.entityItem);
 		}
 	}
 	
@@ -135,6 +151,7 @@ public class MosesMod {
 		@Override
 		public void tickStart(EnumSet<TickType> type, Object... tickData) {
 			if (type.contains(TickType.PLAYER)) {
+				// Turn sticks on fire on leaves into Staff of Moses
 				for (EntityItem stick : tossedSticks) {
 					int x = MathHelper.floor_double(stick.posX);
 					int y = MathHelper.floor_double(stick.posY);
@@ -147,6 +164,21 @@ public class MosesMod {
 						stick.extinguish();
 						stick.worldObj.setBlockToAir(x, y, z);
 						stick.worldObj.playSoundAtEntity(stick, MosesSounds.MOSES, 1, 1);
+						break;
+					}
+				}
+				// Turn Staff of Moses in lava into Burnt Staff of Moses
+				for (EntityItem staff : tossedStaffs) {
+					int x = MathHelper.floor_double(staff.posX);
+					int y = MathHelper.floor_double(staff.posY);
+					int z = MathHelper.floor_double(staff.posZ);
+					int blockID = staff.worldObj.getBlockId(x, y, z);
+					if (blockID == Block.lavaMoving.blockID || blockID == Block.lavaStill.blockID) {
+						tossedStaffs.remove(staff);
+						staff.setEntityItemStack(new ItemStack(burntStaffOfMoses));
+						staff.extinguish();
+						staff.worldObj.setBlockToAir(x, y, z);
+						staff.worldObj.playSoundAtEntity(staff, MosesSounds.BURNT_STAFF, 1, 1);
 						break;
 					}
 				}

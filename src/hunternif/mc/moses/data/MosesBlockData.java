@@ -7,12 +7,14 @@ import java.util.Set;
 
 public class MosesBlockData {
 	public IntVec3 coords;
-	public int waterBlockID;
+	public int prevBlockID;
+	public int prevMetadata;
 	private Set<Integer> ownerEntityIDs = new HashSet<Integer>();
 	
-	public MosesBlockData(IntVec3 coords, int waterBlockID, int ownerID) {
+	public MosesBlockData(IntVec3 coords, int prevBlockID, int prevMetadata, int ownerID) {
 		this.coords = coords;
-		this.waterBlockID = waterBlockID;
+		this.prevBlockID = prevBlockID;
+		this.prevMetadata = prevMetadata;
 		addOwner(ownerID);
 	}
 	

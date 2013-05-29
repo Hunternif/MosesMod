@@ -60,4 +60,9 @@ public class TransparentBlock extends Block {
 	public void registerIcons(IconRegister iconRegister) {
 		this.blockIcon = iconRegister.registerIcon("water");
 	}
+	
+	@Override
+	public boolean isAirBlock(World world, int x, int y, int z) {
+		return true;
+	}
 }
