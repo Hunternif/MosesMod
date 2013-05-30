@@ -9,8 +9,8 @@ public class BurntStaffOfMoses extends StaffOfMoses {
 	}
 	
 	@Override
-	protected boolean isWaterBlock(int blockID) {
-		return super.isWaterBlock(blockID) ||
+	protected boolean isRemovableBlock(int blockID) {
+		return super.isRemovableBlock(blockID) ||
 				blockID == Block.lavaMoving.blockID ||
 				blockID == Block.lavaStill.blockID;
 	}

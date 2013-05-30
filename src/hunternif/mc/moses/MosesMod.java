@@ -46,7 +46,7 @@ import cpw.mods.fml.common.registry.TickRegistry;
 public class MosesMod {
 	public static final String ID = "MosesMod";
 	public static final String NAME = "Moses Mod";
-	public static final String VERSION = "1.1";
+	public static final String VERSION = "1.1.1";
 	public static final String CHANNEL = ID;
 	
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
