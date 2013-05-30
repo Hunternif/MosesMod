@@ -24,7 +24,6 @@ import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.Init;
@@ -40,13 +39,14 @@ import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.registry.TickRegistry;
+import cpw.mods.fml.relauncher.Side;
 
 @Mod(modid=MosesMod.ID, name=MosesMod.NAME, version=MosesMod.VERSION)
 @NetworkMod(clientSideRequired=true, serverSideRequired=true)
 public class MosesMod {
 	public static final String ID = "MosesMod";
 	public static final String NAME = "Moses Mod";
-	public static final String VERSION = "1.1.1";
+	public static final String VERSION = "1.1.2";
 	public static final String CHANNEL = ID;
 	
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
@@ -119,7 +119,7 @@ public class MosesMod {
 		LanguageRegistry.addName(waterBlocker, "Water Blocker");
 		
 		proxy.registerRenderers();
-		TickRegistry.registerTickHandler(tickHandler, FMLCommonHandler.instance().getSide());
+		TickRegistry.registerTickHandler(tickHandler, Side.SERVER);
 		GameRegistry.registerPlayerTracker(new PlayerTracker());
 	}
 	
