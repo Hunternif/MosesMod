@@ -6,4 +6,6 @@ This mod introduces the item "Staff of Moses", which can be obtained with the he
 With the staff equipped, right-click in the direction of water will create a passage to a dramatic music cut from "The Prince of Egypt"; right-click in any other direction or logging out will close all passages. Hitting stone with the staff will create a source of water.
 One passage is maximum 5 blocks wide and 64 blocks long (it is now configurable); it may be narrower if the coastline is irregular (I might fix this someday).
 
+As people have suggested, there is now a staff that parts both water and lava. In order to obtain one, you must throw the regular Staff of Moses into lava.
+
 This mod should work in single player and multiplayer.
