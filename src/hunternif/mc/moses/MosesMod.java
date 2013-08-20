@@ -117,6 +117,7 @@ public class MosesMod {
 		LanguageRegistry.addName(waterBlocker, "Water Blocker");
 		
 		proxy.registerRenderers();
+		TickRegistry.registerTickHandler(tickHandler, Side.CLIENT);
 		TickRegistry.registerTickHandler(tickHandler, Side.SERVER);
 		GameRegistry.registerPlayerTracker(new PlayerTracker());
 	}
