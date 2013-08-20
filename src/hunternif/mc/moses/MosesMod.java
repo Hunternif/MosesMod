@@ -26,10 +26,8 @@ import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Mod.Init;
+import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
-import cpw.mods.fml.common.Mod.PostInit;
-import cpw.mods.fml.common.Mod.PreInit;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.TickType;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -46,7 +44,7 @@ import cpw.mods.fml.relauncher.Side;
 public class MosesMod {
 	public static final String ID = "MosesMod";
 	public static final String NAME = "Moses Mod";
-	public static final String VERSION = "1.1.2";
+	public static final String VERSION = "1.2";
 	public static final String CHANNEL = ID;
 	
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
@@ -77,7 +75,7 @@ public class MosesMod {
 	@SidedProxy(clientSide="hunternif.mc.moses.MosesClientProxy", serverSide="hunternif.mc.moses.MosesCommonProxy")
 	public static MosesCommonProxy proxy;
 	
-	@PreInit
+	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		proxy.registerSounds();
 		MinecraftForge.EVENT_BUS.register(this);
@@ -100,7 +98,7 @@ public class MosesMod {
 		config.save();
 	}
 	
-	@Init
+	@EventHandler
 	public void load(FMLInitializationEvent event) {
 		staffOfMoses = new StaffOfMoses(staffOfMosesId).setCreativeTab(CreativeTabs.tabTools).setUnlocalizedName("staffOfMoses");
 		LanguageRegistry.addName(staffOfMoses, "Staff Of Moses");
@@ -123,7 +121,7 @@ public class MosesMod {
 		GameRegistry.registerPlayerTracker(new PlayerTracker());
 	}
 	
-	@PostInit
+	@EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
 	}
 	
@@ -163,7 +161,7 @@ public class MosesMod {
 						stick.setEntityItemStack(new ItemStack(staffOfMoses));
 						stick.extinguish();
 						stick.worldObj.setBlockToAir(x, y, z);
-						stick.worldObj.playSoundAtEntity(stick, MosesSounds.MOSES, 1, 1);
+						stick.worldObj.playSoundAtEntity(stick, Sound.MOSES.getName(), 1, 1);
 						break;
 					}
 				}
@@ -178,7 +176,7 @@ public class MosesMod {
 						staff.setEntityItemStack(new ItemStack(burntStaffOfMoses));
 						staff.extinguish();
 						staff.worldObj.setBlockToAir(x, y, z);
-						staff.worldObj.playSoundAtEntity(staff, MosesSounds.BURNT_STAFF, 1, 1);
+						staff.worldObj.playSoundAtEntity(staff, Sound.BURNT_STAFF.getName(), 1, 1);
 						break;
 					}
 				}

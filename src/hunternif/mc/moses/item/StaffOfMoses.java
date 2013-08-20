@@ -1,7 +1,7 @@
 package hunternif.mc.moses.item;
 
 import hunternif.mc.moses.MosesMod;
-import hunternif.mc.moses.MosesSounds;
+import hunternif.mc.moses.Sound;
 import hunternif.mc.moses.util.BlockUtil;
 import hunternif.mc.moses.util.IntVec3;
 import hunternif.mc.moses.util.SoundPoint;
@@ -10,7 +10,7 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IconRegister;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -109,7 +109,7 @@ public class StaffOfMoses extends Item {
 			for (SoundPoint sp : soundPoints) {
 				if (sp.coords != null) {
 					boolean isLava = BlockUtil.isLava(sp.blockId);
-					String sound = isLava ? MosesSounds.LAVA_PARTING : MosesSounds.SEA_PARTING;
+					String sound = isLava ? Sound.LAVA_PARTING.getName() : Sound.SEA_PARTING.getName();
 					world.playSoundEffect(sp.coords.x, sp.coords.y, sp.coords.z, sound, 1, 1);
 				}
 			}
@@ -166,7 +166,7 @@ public class StaffOfMoses extends Item {
 	 * Makes a source of water out of stone.
 	 */
 	@Override
-	public boolean onEntitySwing(EntityLiving entityLiving, ItemStack stack) {
+	public boolean onEntitySwing(EntityLivingBase entityLiving, ItemStack stack) {
 		Vec3 position = entityLiving.worldObj.getWorldVec3Pool().getVecFromPool(entityLiving.posX, entityLiving.posY, entityLiving.posZ);
 		if (!entityLiving.worldObj.isRemote) {
 			// Because in server worlds the Y coordinate of a player is his feet's coordinate, without yOffset.
@@ -174,7 +174,7 @@ public class StaffOfMoses extends Item {
 		}
 		Vec3 look = entityLiving.getLookVec();
         Vec3 reach = position.addVector(look.xCoord * playerReach, look.yCoord * playerReach, look.zCoord * playerReach);
-        MovingObjectPosition hit = entityLiving.worldObj.rayTraceBlocks(position, reach);
+        MovingObjectPosition hit = entityLiving.worldObj.clip(position, reach); //raytrace
         if (hit != null) {
         	int x = hit.blockX;
 			int y = hit.blockY;

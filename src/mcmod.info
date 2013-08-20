@@ -4,8 +4,8 @@
   "name": "Moses Mod",
   "description": "Introduces the item \"Staff of Moses\", which can be obtained with the help of a burning bush. With the staff equipped, right-click in the direction of water will create a passage; right-click in any other direction will close all passages. Hitting stone with the staff will create a source of water.
   The staff can be upgraded if it meets lava, then it will be able to part lava too.",
-  "version": "1.1.2",
-  "mcversion": "1.5.2",
+  "version": "1.2",
+  "mcversion": "1.6.2",
   "logoFile": "/moses.png",
   "url": "http://www.planetminecraft.com/mod/147forge-moses-mod/",
   "updateUrl": "",

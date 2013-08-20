@@ -1,7 +1,7 @@
 package hunternif.mc.moses.data;
 
 import hunternif.mc.moses.MosesMod;
-import hunternif.mc.moses.MosesSounds;
+import hunternif.mc.moses.Sound;
 import hunternif.mc.moses.util.BlockUtil;
 import hunternif.mc.moses.util.IntVec3;
 import hunternif.mc.moses.util.SoundPoint;
@@ -117,7 +117,7 @@ public class MosesBlockProvider {
 		for (SoundPoint sp : soundPoints) {
 			if (sp.coords != null) {
 				boolean isLava = BlockUtil.isLava(sp.blockId);
-				String sound = isLava ? MosesSounds.LAVA_CLOSING : MosesSounds.SEA_CLOSING;
+				String sound = isLava ? Sound.LAVA_CLOSING.getName() : Sound.SEA_CLOSING.getName();
 				world.playSoundEffect(sp.coords.x, sp.coords.y, sp.coords.z, sound, 1, 1);
 			}
 		}

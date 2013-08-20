@@ -58,7 +58,7 @@ public class TransparentBlock extends Block {
 	
 	@Override
 	public void registerIcons(IconRegister iconRegister) {
-		this.blockIcon = iconRegister.registerIcon("water");
+		this.blockIcon = iconRegister.registerIcon("water_flow");
 	}
 	
 	@Override
