@@ -9,10 +9,12 @@ import hunternif.mc.moses.material.MaterialWaterBlocker;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -28,6 +30,7 @@ import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.TickType;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -50,6 +53,8 @@ public class MosesMod {
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
 	public static final String KEY_PASSAGE_LENGTH = "mosesPassageLength";
 	
+	private static final String[] immuneToFireObfNames = {"field_70178_ae", "isImmuneToFire"};
+	
 	public static List<Item> itemList = new ArrayList<Item>();
 	private static int staffOfMosesId;
 	public static Item staffOfMoses;
@@ -65,9 +70,9 @@ public class MosesMod {
 	
 	public static Configuration config;
 	
-	public List<EntityItem> tossedSticks = new ArrayList<EntityItem>();
-	public List<EntityItem> tossedStaffs = new ArrayList<EntityItem>();
-	public TickHandler tickHandler = new TickHandler();
+	private List<EntityItem> tossedSticks = new CopyOnWriteArrayList<EntityItem>();
+	private List<EntityItem> tossedStaffs = new CopyOnWriteArrayList<EntityItem>();
+	private TickHandler tickHandler = new TickHandler();
 	
 	@Instance(ID)
 	public static MosesMod instance;
@@ -131,8 +136,10 @@ public class MosesMod {
 		ItemStack stack = event.entityItem.getEntityItem(); 
 		if (stack.itemID == Item.stick.itemID) {
 			tossedSticks.add(event.entityItem);
+			ObfuscationReflectionHelper.setPrivateValue(Entity.class, event.entityItem, true, immuneToFireObfNames);
 		} else if (stack.itemID == staffOfMoses.itemID) {
 			tossedStaffs.add(event.entityItem);
+			ObfuscationReflectionHelper.setPrivateValue(Entity.class, event.entityItem, true, immuneToFireObfNames);
 		}
 	}
 	
@@ -157,13 +164,15 @@ public class MosesMod {
 					int z = MathHelper.floor_double(stick.posZ);
 					boolean foundFire = stick.worldObj.getBlockId(x, y, z) == Block.fire.blockID;
 					boolean foundBush = stick.worldObj.getBlockId(x, y-1, z) == Block.leaves.blockID;
-					if (stick.isBurning() && foundFire && foundBush) {
+					if (foundFire && foundBush) {
 						tossedSticks.remove(stick);
-						stick.setEntityItemStack(new ItemStack(staffOfMoses));
 						stick.extinguish();
+						stick.setEntityItemStack(new ItemStack(staffOfMoses));
 						stick.worldObj.setBlockToAir(x, y, z);
 						stick.worldObj.playSoundAtEntity(stick, Sound.MOSES.getName(), 1, 1);
 						break;
+					} else {
+						ObfuscationReflectionHelper.setPrivateValue(Entity.class, stick, false, immuneToFireObfNames);
 					}
 				}
 				// Turn Staff of Moses in lava into Burnt Staff of Moses
@@ -174,11 +183,13 @@ public class MosesMod {
 					int blockID = staff.worldObj.getBlockId(x, y, z);
 					if (blockID == Block.lavaMoving.blockID || blockID == Block.lavaStill.blockID) {
 						tossedStaffs.remove(staff);
-						staff.setEntityItemStack(new ItemStack(burntStaffOfMoses));
 						staff.extinguish();
+						staff.setEntityItemStack(new ItemStack(burntStaffOfMoses));
 						staff.worldObj.setBlockToAir(x, y, z);
 						staff.worldObj.playSoundAtEntity(staff, Sound.BURNT_STAFF.getName(), 1, 1);
 						break;
+					} else {
+						ObfuscationReflectionHelper.setPrivateValue(Entity.class, staff, false, immuneToFireObfNames);
 					}
 				}
 			}
