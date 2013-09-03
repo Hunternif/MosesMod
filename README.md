@@ -16,3 +16,12 @@ Building
 Link the `src` folder as source to your project build path. In order to build and package the mod for release run the script `build.bat`. The script must be run in its current directory and the environment variable `FORGE_HOME` must point to Minecraft Forge install directory. Additionally, the mod will be packaged into an archive (with resources and mcmod.info) only if you have WinRAR installed at default path.
 
 Hope someone provides a cleaner solution :)
+
+TODO Features
+-------------
+
+* Left-click on water to turn all water around into blood.
+
+* Left-click on sand to send a swarm of flies that hurt entities except you.
+
+* During a thundering storm stand on top of a mountain (y > some threshold) and type in chat something along the lines of "Praise the Lord", a lightning will strike and spawn 2 stone tablets. Opening those tablets will show the Ten Commandments.
