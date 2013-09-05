@@ -17,7 +17,7 @@ public class MosesClientProxy extends MosesCommonProxy {
 	public void onSound(SoundLoadEvent event) {
         try {
         	for (Sound sound : Sound.values()) {
-        		event.manager.soundPoolSounds.addSound(sound.getName()+".wav");
+        		event.manager.soundPoolSounds.addSound(sound.getName()+".ogg");
         	}
         }
         catch (Exception e) {
