@@ -21,7 +21,7 @@ public class MosesClientProxy extends MosesCommonProxy {
         	}
         }
         catch (Exception e) {
-        	FMLLog.log(MosesMod.ID, Level.WARNING, ": Failed to register one or more sounds.");
+        	MosesMod.logger.warning(": Failed to register one or more sounds.");
         }
     }
 }

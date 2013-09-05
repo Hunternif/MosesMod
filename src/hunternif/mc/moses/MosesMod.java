@@ -9,6 +9,7 @@ import hunternif.mc.moses.material.MaterialWaterBlocker;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Logger;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -50,6 +51,8 @@ public class MosesMod {
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
 	public static final String KEY_PASSAGE_LENGTH = "mosesPassageLength";
 	
+	public static Logger logger;
+	
 	public static List<Item> itemList = new ArrayList<Item>();
 	private static int staffOfMosesId;
 	public static Item staffOfMoses;
@@ -77,6 +80,7 @@ public class MosesMod {
 	
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
+		logger = event.getModLog();
 		proxy.registerSounds();
 		MinecraftForge.EVENT_BUS.register(this);
 		
@@ -130,8 +134,10 @@ public class MosesMod {
 	public void onItemToss(ItemTossEvent event) {
 		ItemStack stack = event.entityItem.getEntityItem(); 
 		if (stack.itemID == Item.stick.itemID) {
+			logger.fine("Tracking a tossed stick.");
 			tossedSticks.add(event.entityItem);
 		} else if (stack.itemID == staffOfMoses.itemID) {
+			logger.fine("Tracking a tossed staff.");
 			tossedStaffs.add(event.entityItem);
 		}
 	}
@@ -158,6 +164,7 @@ public class MosesMod {
 					boolean foundFire = stick.worldObj.getBlockId(x, y, z) == Block.fire.blockID;
 					boolean foundBush = stick.worldObj.getBlockId(x, y-1, z) == Block.leaves.blockID;
 					if (stick.isBurning() && foundFire && foundBush) {
+						logger.info("Transforming stick into Staff.");
 						tossedSticks.remove(stick);
 						stick.setEntityItemStack(new ItemStack(staffOfMoses));
 						stick.extinguish();
@@ -173,6 +180,7 @@ public class MosesMod {
 					int z = MathHelper.floor_double(staff.posZ);
 					int blockID = staff.worldObj.getBlockId(x, y, z);
 					if (blockID == Block.lavaMoving.blockID || blockID == Block.lavaStill.blockID) {
+						logger.info("Transforming Staff into Burnt Staff.");
 						tossedStaffs.remove(staff);
 						staff.setEntityItemStack(new ItemStack(burntStaffOfMoses));
 						staff.extinguish();
