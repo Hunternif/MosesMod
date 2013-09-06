@@ -207,7 +207,9 @@ public class StaffOfMoses extends Item {
 	        	// Turn water into blood:
         		replaceWaterWithBlood(entityLiving.worldObj, x, z);
         		MosesMod.logger.info(String.format("Replaced water with blood at (%d, %d)", x, z));
-        		entityLiving.worldObj.playSoundEffect(x, y, z, Sound.BLOOD.getName(), 0.7f, 1);
+        		if (hitID != MosesMod.blockBlood.blockID) {
+        			entityLiving.worldObj.playSoundEffect(x, y, z, Sound.BLOOD.getName(), 0.7f, 1);
+        		}
 	        }
         }
 		return false;
