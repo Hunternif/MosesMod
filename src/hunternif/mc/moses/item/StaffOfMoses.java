@@ -28,7 +28,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class StaffOfMoses extends Item {
 	public static double playerReach = 5;
 	public static double maxReach = 10;
-	public static int bloodPuddleRadius = 32;
+	public static int bloodPuddleRadius = 16;
 	
 	public int passageHalfWidth = 2;
 	public double maxPassageLength = 64;

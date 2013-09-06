@@ -53,6 +53,7 @@ public class MosesMod {
 	
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
 	public static final String KEY_PASSAGE_LENGTH = "mosesPassageLength";
+	public static final String KEY_BLOOD_PUDDLE_RADIUS = "bloodPuddleRadius";
 	
 	public static Logger logger;
 	
@@ -69,6 +70,7 @@ public class MosesMod {
 	private static int blockBloodID;
 	public static Block blockBlood;
 	public static Fluid blood;
+	public static int bloodPuddleRadius;
 	
 	public static MosesBlockProvider mosesBlockProvider = new MosesBlockProvider();
 	
@@ -106,6 +108,9 @@ public class MosesMod {
 		propLength.comment = "Maximum length of one passage.";
 		passageLength  = propLength.getDouble(64.0d);
 		
+		Property propBloodPuddleRadius = config.get(Configuration.CATEGORY_GENERAL, KEY_BLOOD_PUDDLE_RADIUS, 16);
+		propBloodPuddleRadius.comment = "Radius of the puddle of blood which is created when hitting water with the Staff.";
+		bloodPuddleRadius = propBloodPuddleRadius.getInt(16);
 		config.save();
 	}
 	
@@ -116,12 +121,14 @@ public class MosesMod {
 		itemList.add(staffOfMoses);
 		((StaffOfMoses)staffOfMoses).passageHalfWidth = passageHalfWidth;
 		((StaffOfMoses)staffOfMoses).maxPassageLength = passageLength;
+		((StaffOfMoses)staffOfMoses).bloodPuddleRadius = bloodPuddleRadius;
 		
 		burntStaffOfMoses = new BurntStaffOfMoses(burntStaffOfMosesId).setCreativeTab(CreativeTabs.tabTools).setUnlocalizedName("burntStaffOfMoses");
 		LanguageRegistry.addName(burntStaffOfMoses, "Burnt Staff Of Moses");
 		itemList.add(burntStaffOfMoses);
 		((BurntStaffOfMoses)burntStaffOfMoses).passageHalfWidth = passageHalfWidth;
 		((BurntStaffOfMoses)burntStaffOfMoses).maxPassageLength = passageLength;
+		((BurntStaffOfMoses)burntStaffOfMoses).bloodPuddleRadius = bloodPuddleRadius;
 		
 		waterBlocker = new TransparentBlock(waterBlockerID, materialWaterBlocker).setStepSound(Block.soundGlassFootstep).setUnlocalizedName("waterBlocker").setCreativeTab(CreativeTabs.tabMisc);
 		GameRegistry.registerBlock(waterBlocker, "waterBlocker");
