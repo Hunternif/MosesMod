@@ -50,7 +50,7 @@ public class IntVec3 {
 	
 	@Override
 	public int hashCode() {
-		return x*100000 + z*100 + y;
+		return x + z << 16 + y << 25;
 	}
 	
 	public boolean equalsIntVec3(IntVec3 vec) {

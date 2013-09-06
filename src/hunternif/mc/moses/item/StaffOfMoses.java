@@ -3,12 +3,19 @@ package hunternif.mc.moses.item;
 import hunternif.mc.moses.MosesMod;
 import hunternif.mc.moses.Sound;
 import hunternif.mc.moses.util.BlockUtil;
+import hunternif.mc.moses.util.IntVec2;
 import hunternif.mc.moses.util.IntVec3;
 import hunternif.mc.moses.util.SoundPoint;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -24,8 +31,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class StaffOfMoses extends Item {
 	public static double playerReach = 5;
-	
 	public static double maxReach = 10;
+	public static int bloodPuddleRadius = 32;
 	
 	public int passageHalfWidth = 2;
 	public double maxPassageLength = 64;
@@ -38,7 +45,8 @@ public class StaffOfMoses extends Item {
 	}
 	
 	protected boolean isRemovableBlock(int blockID) {
-		return blockID == Block.waterMoving.blockID || blockID == Block.waterStill.blockID;
+		return blockID == Block.waterMoving.blockID || blockID == Block.waterStill.blockID ||
+				blockID == MosesMod.blockBlood.blockID;
 	}
 	
 	protected boolean isRemovableOrBlockerBlock(int blockID) {
@@ -146,15 +154,16 @@ public class StaffOfMoses extends Item {
 			if (isRemovableBlock(blockID)) {
 				Vec3 vector = coords.toVec3(world.getWorldVec3Pool());
 				// Check if we hit any player BBs, but only for non-empty blocks
-				if (blockID != MosesMod.waterBlocker.blockID)
-				for (SoundPoint sp : soundPoints) {
-					if (sp.expandedAABB.isVecInside(vector)) {
-						Vec3 playerPos = getPlayerPosition(sp.player);
-						double distance = vector.distanceTo(playerPos);
-						if (sp.coords == null || distance < sp.distanceToPlayer) {
-							sp.coords = coords.copy();
-							sp.distanceToPlayer = distance;
-							sp.blockId = blockID;
+				if (blockID != MosesMod.waterBlocker.blockID) {
+					for (SoundPoint sp : soundPoints) {
+						if (sp.expandedAABB.isVecInside(vector)) {
+							Vec3 playerPos = getPlayerPosition(sp.player);
+							double distance = vector.distanceTo(playerPos);
+							if (sp.coords == null || distance < sp.distanceToPlayer) {
+								sp.coords = coords.copy();
+								sp.distanceToPlayer = distance;
+								sp.blockId = blockID;
+							}
 						}
 					}
 				}
@@ -162,11 +171,25 @@ public class StaffOfMoses extends Item {
 		}
 	}
 	
+	
+	private Map<EntityLivingBase, Integer> swungOnTicks = new ConcurrentHashMap<EntityLivingBase, Integer>();
 	/**
-	 * Makes a source of water out of stone.
+	 * Because there is no method for left-clicking blocks.
 	 */
 	@Override
 	public boolean onEntitySwing(EntityLivingBase entityLiving, ItemStack stack) {
+		if (!entityLiving.worldObj.isRemote) {
+			// For some reason this method is called several times when breaking blocks,
+			// which causes water out of stone to be turned into blood immediately.
+			// To prevent this only proceed if last time was at least 2 ticks ago:
+			Integer lastSwing = swungOnTicks.get(entityLiving);
+			if (lastSwing == null || entityLiving.ticksExisted - lastSwing.intValue() > 2) {
+				lastSwing = Integer.valueOf(entityLiving.ticksExisted);
+				swungOnTicks.put(entityLiving, lastSwing);
+			} else {
+				return true;
+			}
+		}
 		Vec3 position = entityLiving.worldObj.getWorldVec3Pool().getVecFromPool(entityLiving.posX, entityLiving.posY, entityLiving.posZ);
 		if (!entityLiving.worldObj.isRemote) {
 			// Because in server worlds the Y coordinate of a player is his feet's coordinate, without yOffset.
@@ -174,17 +197,31 @@ public class StaffOfMoses extends Item {
 		}
 		Vec3 look = entityLiving.getLookVec();
         Vec3 reach = position.addVector(look.xCoord * playerReach, look.yCoord * playerReach, look.zCoord * playerReach);
-        MovingObjectPosition hit = entityLiving.worldObj.clip(position, reach); //raytrace
+        MovingObjectPosition hit = entityLiving.worldObj.clip(position, reach, true); //raytrace
         if (hit != null) {
         	int x = hit.blockX;
 			int y = hit.blockY;
 			int z = hit.blockZ;
 	        int hitID = entityLiving.worldObj.getBlockId(x, y, z);
+	        Material hitMaterial = entityLiving.worldObj.getBlockMaterial(x, y, z);
 	        if (hitID == Block.stone.blockID) {
-	        	entityLiving.worldObj.setBlock(x, y, z, Block.waterMoving.blockID, 0, 3);
+	        	// Makes a source of water out of stone:
+	        	if (!entityLiving.worldObj.isRemote) {
+	        		entityLiving.worldObj.setBlock(x, y, z, Block.waterMoving.blockID, 0, 3);
+	        		MosesMod.logger.info(String.format("Made water out of stone at (%d, %d, %d)", x, y, z));
+	        	}
+	        } else if (hitMaterial == Material.water) {
+	        	// Turn water into blood:
+	        	if (hitID != MosesMod.blockBlood.blockID) {
+	        		entityLiving.playSound(Sound.BLOOD.getName(), 0.7f, 1);
+	        	}
+	        	if (!entityLiving.worldObj.isRemote) {
+	        		replaceWaterWithBlood(entityLiving.worldObj, x, z);
+	        		MosesMod.logger.info(String.format("Replaced water with blood at (%d, %d)", x, z));
+	        	}
 	        }
         }
-		return super.onEntitySwing(entityLiving, stack);
+		return false;
 	}
 	
 	public void createPassage(World world, EntityPlayer player, Vec3 lookXZ,
@@ -207,5 +244,35 @@ public class StaffOfMoses extends Item {
 			position = position.addVector(0, 1.62D, 0);
 		}
 		return position;
+	}
+	
+	/** Replaces all water with blood in a diamond-shaped area. */
+	protected void replaceWaterWithBlood(World world, int x, int z) {
+		replaceWaterWithBloodRecursive(bloodPuddleRadius, world, x, z, new HashMap<IntVec2, Integer>());
+	}
+	private void replaceWaterWithBloodRecursive(int waterLevel, World world, int x, int z,
+			Map<IntVec2, Integer> turnedToBlood /** Maps column coords to water level. */) {
+		if (waterLevel > 0) {
+			IntVec2 coords = new IntVec2(x, z);
+			Integer prevWaterLevel =  turnedToBlood.get(coords);
+			if (prevWaterLevel != null && prevWaterLevel.intValue() >= waterLevel) {
+				return;
+			}
+			turnedToBlood.put(coords, Integer.valueOf(waterLevel));
+			for (int y = 0; y < world.getHeight(); y++) {
+				Material material = world.getBlockMaterial(x, y, z);
+				if (material == Material.water) {
+					int metadata = world.getBlockMetadata(x, y, z);
+					world.setBlock(x, y, z, MosesMod.blockBlood.blockID, metadata, 3);
+				}
+			}
+			waterLevel--;
+			if (waterLevel > 0) {
+				replaceWaterWithBloodRecursive(waterLevel, world, x-1, z, turnedToBlood);
+				replaceWaterWithBloodRecursive(waterLevel, world, x+1, z, turnedToBlood);
+				replaceWaterWithBloodRecursive(waterLevel, world, x, z-1, turnedToBlood);
+				replaceWaterWithBloodRecursive(waterLevel, world, x, z+1, turnedToBlood);
+			}
+		}
 	}
 }

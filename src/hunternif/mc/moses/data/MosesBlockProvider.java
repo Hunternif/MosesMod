@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 
 public class MosesBlockProvider {
 	private Map<World, ConcurrentHashMap<IntVec3, MosesBlockData>> worldsMap = new ConcurrentHashMap<World, ConcurrentHashMap<IntVec3, MosesBlockData>>();
-	private ConcurrentHashMap<Integer /*player entityId*/, Set<MosesBlockData>> ownedBlocks = new ConcurrentHashMap<Integer, Set<MosesBlockData>>();
+	private ConcurrentHashMap<Integer /*player entityId*/, Set<MosesBlockData>> ownedBlocks = new ConcurrentHashMap<Integer, Set<MosesBlockData>>(100000);
 	//TODO implement caching
 	//FIXME optimize, optimize, optimize! Version 0.3 was SO MUCH faster. Try using multi-dimensional (jagged) array instead of the HashMap.
 	

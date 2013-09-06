@@ -63,6 +63,6 @@ public class TransparentBlock extends Block {
 	
 	@Override
 	public boolean isAirBlock(World world, int x, int y, int z) {
-		return true;
+		return false;
 	}
 }

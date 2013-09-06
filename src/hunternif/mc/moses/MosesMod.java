@@ -1,5 +1,6 @@
 package hunternif.mc.moses;
 
+import hunternif.mc.moses.block.BlockBlood;
 import hunternif.mc.moses.block.TransparentBlock;
 import hunternif.mc.moses.data.MosesBlockProvider;
 import hunternif.mc.moses.item.BurntStaffOfMoses;
@@ -25,6 +26,9 @@ import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.terraingen.BiomeEvent;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -63,6 +67,9 @@ public class MosesMod {
 	private static int waterBlockerID;
 	public static Block waterBlocker;
 	public static Material materialWaterBlocker = new MaterialWaterBlocker();
+	private static int blockBloodID;
+	public static Block blockBlood;
+	public static Fluid blood;
 	
 	public static MosesBlockProvider mosesBlockProvider = new MosesBlockProvider();
 	
@@ -90,6 +97,7 @@ public class MosesMod {
 		staffOfMosesId = config.getItem("staffOfMoses", 26999).getInt();
 		burntStaffOfMosesId = config.getItem("burntStaffOfMoses", 26998).getInt();
 		waterBlockerID = config.getBlock("waterBlocker", 2699).getInt();
+		blockBloodID = config.getBlock("blockBloodID", 2698).getInt();
 		
 		Property propHalfWidth = config.get(Configuration.CATEGORY_GENERAL, KEY_PASSAGE_HALF_WIDTH, 2);
 		propHalfWidth.comment = "Maximum width of a passage is 2*N + 1, where N is this value.";
@@ -120,7 +128,14 @@ public class MosesMod {
 		GameRegistry.registerBlock(waterBlocker, "waterBlocker");
 		LanguageRegistry.addName(waterBlocker, "Water Blocker");
 		
+		blood = new Fluid("mosesBlood");
 		proxy.registerRenderers();
+		
+		FluidRegistry.registerFluid(blood);
+		blockBlood = new BlockBlood(blockBloodID, blood, Material.water).setUnlocalizedName("blood");
+		GameRegistry.registerBlock(blockBlood, "blood");
+		LanguageRegistry.addName(blockBlood, "Blood");
+		
 		TickRegistry.registerTickHandler(tickHandler, Side.CLIENT);
 		TickRegistry.registerTickHandler(tickHandler, Side.SERVER);
 		GameRegistry.registerPlayerTracker(new PlayerTracker());
@@ -202,5 +217,9 @@ public class MosesMod {
 		public String getLabel() {
 			return null;
 		}
+	}
+	
+	public void onWaterColor(BiomeEvent.GetWaterColor event) {
+		
 	}
 }

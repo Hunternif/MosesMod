@@ -6,7 +6,8 @@ public enum Sound {
 	LAVA_PARTING("lava_parting"),
 	LAVA_CLOSING("lava_closing"),
 	MOSES("moses"),
-	BURNT_STAFF("burnt_staff");
+	BURNT_STAFF("burnt_staff"),
+	BLOOD("blood");
 	
 	private String name;
 	private Sound(String name) {
