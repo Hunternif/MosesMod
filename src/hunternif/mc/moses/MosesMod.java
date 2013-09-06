@@ -26,7 +26,6 @@ import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.event.terraingen.BiomeEvent;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import cpw.mods.fml.common.ITickHandler;
@@ -217,9 +216,5 @@ public class MosesMod {
 		public String getLabel() {
 			return null;
 		}
-	}
-	
-	public void onWaterColor(BiomeEvent.GetWaterColor event) {
-		
 	}
 }

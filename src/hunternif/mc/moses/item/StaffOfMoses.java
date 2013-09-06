@@ -8,10 +8,8 @@ import hunternif.mc.moses.util.IntVec3;
 import hunternif.mc.moses.util.SoundPoint;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.block.Block;
@@ -259,19 +257,23 @@ public class StaffOfMoses extends Item {
 				return;
 			}
 			turnedToBlood.put(coords, Integer.valueOf(waterLevel));
-			for (int y = 0; y < world.getHeight(); y++) {
-				Material material = world.getBlockMaterial(x, y, z);
-				if (material == Material.water) {
-					int metadata = world.getBlockMetadata(x, y, z);
-					world.setBlock(x, y, z, MosesMod.blockBlood.blockID, metadata, 3);
-				}
-			}
+			replaceWaterWithBloodInColumn(world, x, z);
 			waterLevel--;
 			if (waterLevel > 0) {
 				replaceWaterWithBloodRecursive(waterLevel, world, x-1, z, turnedToBlood);
 				replaceWaterWithBloodRecursive(waterLevel, world, x+1, z, turnedToBlood);
 				replaceWaterWithBloodRecursive(waterLevel, world, x, z-1, turnedToBlood);
 				replaceWaterWithBloodRecursive(waterLevel, world, x, z+1, turnedToBlood);
+			}
+		}
+	}
+	
+	private static void replaceWaterWithBloodInColumn(World world, int x, int z) {
+		for (int y = 0; y < world.getHeight(); y++) {
+			Material material = world.getBlockMaterial(x, y, z);
+			if (material == Material.water) {
+				int metadata = world.getBlockMetadata(x, y, z);
+				world.setBlock(x, y, z, MosesMod.blockBlood.blockID, metadata, 3);
 			}
 		}
 	}
