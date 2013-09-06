@@ -128,13 +128,13 @@ public class MosesMod {
 		LanguageRegistry.addName(waterBlocker, "Water Blocker");
 		
 		blood = new Fluid("mosesBlood");
-		proxy.registerRenderers();
 		
 		FluidRegistry.registerFluid(blood);
 		blockBlood = new BlockBlood(blockBloodID, blood, Material.water).setUnlocalizedName("blood");
 		GameRegistry.registerBlock(blockBlood, "blood");
 		LanguageRegistry.addName(blockBlood, "Blood");
 		
+		proxy.registerRenderers();
 		TickRegistry.registerTickHandler(tickHandler, Side.CLIENT);
 		TickRegistry.registerTickHandler(tickHandler, Side.SERVER);
 		GameRegistry.registerPlayerTracker(new PlayerTracker());
