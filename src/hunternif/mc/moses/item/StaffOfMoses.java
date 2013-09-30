@@ -203,13 +203,15 @@ public class StaffOfMoses extends Item {
 	        	// Makes a source of water out of stone:
         		entityLiving.worldObj.setBlock(x, y, z, Block.waterMoving.blockID, 0, 3);
         		MosesMod.logger.info(String.format("Made water out of stone at (%d, %d, %d)", x, y, z));
-	        } else if (hitMaterial == Material.water) {
+	        } else if (hitID == Block.waterStill.blockID || hitID == Block.waterMoving.blockID) {
 	        	// Turn water into blood:
         		replaceWaterWithBlood(entityLiving.worldObj, x, z);
         		MosesMod.logger.info(String.format("Replaced water with blood at (%d, %d)", x, z));
-        		if (hitID != MosesMod.blockBlood.blockID) {
-        			entityLiving.worldObj.playSoundEffect(x, y, z, Sound.BLOOD.getName(), 0.7f, 1);
-        		}
+        		entityLiving.worldObj.playSoundEffect(x, y, z, Sound.BLOOD.getName(), 0.7f, 1);
+	        } else if (hitID == MosesMod.blockBlood.blockID) {
+	        	// Turn blood back into water:
+	        	replaceBloodWithWater(entityLiving.worldObj, x, z);
+        		MosesMod.logger.info(String.format("Replaced blood with water at (%d, %d)", x, z));
 	        }
         }
 		return false;
@@ -248,13 +250,33 @@ public class StaffOfMoses extends Item {
 			}
 		}
 	}
-	
 	private static void replaceWaterWithBloodInColumn(World world, int x, int z) {
 		for (int y = 0; y < world.getHeight(); y++) {
 			Material material = world.getBlockMaterial(x, y, z);
 			if (material == Material.water) {
 				int metadata = world.getBlockMetadata(x, y, z);
 				world.setBlock(x, y, z, MosesMod.blockBlood.blockID, metadata, 3);
+			}
+		}
+	}
+	
+	protected void replaceBloodWithWater(World world, int x, int z) {
+		for (int dx = 0; dx <= bloodPuddleRadius; dx++) {
+			for (int dz = bloodPuddleRadius - dx; dz >= 0; dz--) {
+				replaceBloodWithWaterInColumn(world, x + dx, z + dz);
+				replaceBloodWithWaterInColumn(world, x - dx, z + dz);
+				replaceBloodWithWaterInColumn(world, x + dx, z - dz);
+				replaceBloodWithWaterInColumn(world, x - dx, z - dz);
+			}
+		}
+	}
+	private static void replaceBloodWithWaterInColumn(World world, int x, int z) {
+		for (int y = 0; y < world.getHeight(); y++) {
+			if (world.getBlockId(x, y, z) == MosesMod.blockBlood.blockID) {
+				int metadata = world.getBlockMetadata(x, y, z);
+				int blockID = MosesMod.blockBlood.isSourceBlock(world, x, y, z) ?
+						Block.waterStill.blockID : Block.waterMoving.blockID;
+				world.setBlock(x, y, z, blockID, metadata, 3);
 			}
 		}
 	}

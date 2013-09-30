@@ -26,6 +26,7 @@ import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import cpw.mods.fml.common.ITickHandler;
@@ -48,7 +49,7 @@ import cpw.mods.fml.relauncher.Side;
 public class MosesMod {
 	public static final String ID = "MosesMod";
 	public static final String NAME = "Moses Mod";
-	public static final String VERSION = "1.3";
+	public static final String VERSION = "1.3.1";
 	public static final String CHANNEL = ID;
 	
 	public static final String KEY_PASSAGE_HALF_WIDTH = "mosesPassageHalfWidth";
@@ -68,7 +69,7 @@ public class MosesMod {
 	public static Block waterBlocker;
 	public static Material materialWaterBlocker = new MaterialWaterBlocker();
 	private static int blockBloodID;
-	public static Block blockBlood;
+	public static BlockFluidClassic blockBlood;
 	public static Fluid blood;
 	public static int bloodPuddleRadius;
 	
@@ -137,7 +138,8 @@ public class MosesMod {
 		blood = new Fluid("mosesBlood");
 		
 		FluidRegistry.registerFluid(blood);
-		blockBlood = new BlockBlood(blockBloodID, blood, Material.water).setUnlocalizedName("blood");
+		blockBlood = new BlockBlood(blockBloodID, blood, Material.water);
+		blockBlood.setUnlocalizedName("blood");
 		GameRegistry.registerBlock(blockBlood, "blood");
 		LanguageRegistry.addName(blockBlood, "Blood");
 		
