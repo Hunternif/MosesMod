@@ -13,14 +13,10 @@ This mod should work in single player and multiplayer.
 Building
 --------
 
-Link the `src` folder as source to your project build path. In order to build and package the mod for release run the script `build.bat`. The script must be run in its current directory and the environment variable `FORGE_HOME` must point to Minecraft Forge install directory. Additionally, the mod will be packaged into an archive (with resources and mcmod.info) only if you have WinRAR installed at default path.
-
-Hope someone provides a cleaner solution :)
+Link the `src` folder as source to your project build path. In order to build and package the mod for release run the script `build.bat`. The script must be run in its current directory and the environment variable `MCP_HOME` must point to MCP install directory (if you only install Forge, then it's in `forge/mcp`). Additionally, the mod will be packaged into an archive (with resources and mcmod.info).
 
 TODO Features
 -------------
-
-* Left-click on water to turn all water around into blood.
 
 * Left-click on sand to send a swarm of flies that hurt entities except you.
 
