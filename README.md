@@ -13,7 +13,9 @@ This mod should work in single player and multiplayer.
 Building
 --------
 
-Link the `src` folder as source to your project build path. In order to build and package the mod for release run the script `build.bat`. The script must be run in its current directory and the environment variable `MCP_HOME` must point to MCP install directory (if you only install Forge, then it's in `forge/mcp`). Additionally, the mod will be packaged into an archive (with resources and mcmod.info).
+1. Check out the project and import it into a workspace with the project Minecraft.
+2. Create a copy of the file `local.properties.example`, rename it to `local.properties` (Git ignores it) and change the properties to valid paths on your computer. The paths are either absolute or relative to the project folder.
+3. Run the Ant script `build.xml`. By default it will create a release build, deobfuscated build and a zip file with the JavaDocs. Creation of JavaDocs will fail unless you run Ant in a JDK (instead of a simple JRE), but it will not affect the release builds.
 
 TODO Features
 -------------

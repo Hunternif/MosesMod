@@ -64,6 +64,7 @@
     </target>
     
     <target name="copy libs">
+    	<mkdir dir="lib"/>
         <copy todir="${mcp.lib}">
             <fileset dir="lib" includes="**/*.jar"/>
         </copy>
