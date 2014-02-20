@@ -8,35 +8,24 @@ import hunternif.mc.moses.item.StaffOfMoses;
 import hunternif.mc.moses.material.MaterialWaterBlocker;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Property;
-import net.minecraftforge.event.ForgeSubscribe;
-import net.minecraftforge.event.entity.item.ItemExpireEvent;
-import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
-import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.TickType;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -77,10 +66,6 @@ public class MosesMod {
 	
 	public static Configuration config;
 	
-	public List<EntityItem> tossedSticks = new ArrayList<EntityItem>();
-	public List<EntityItem> tossedStaffs = new ArrayList<EntityItem>();
-	public TickHandler tickHandler = new TickHandler();
-	
 	@Instance(ID)
 	public static MosesMod instance;
 	
@@ -90,7 +75,7 @@ public class MosesMod {
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		logger = event.getModLog();
-		proxy.registerSounds();
+		proxy.preInit();
 		MinecraftForge.EVENT_BUS.register(this);
 		
 		config = new Configuration(event.getSuggestedConfigurationFile());
@@ -116,10 +101,11 @@ public class MosesMod {
 	}
 	
 	@EventHandler
-	public void load(FMLInitializationEvent event) {
+	public void init(FMLInitializationEvent event) {
 		staffOfMoses = new StaffOfMoses(staffOfMosesId).setCreativeTab(CreativeTabs.tabTools).setUnlocalizedName("staffOfMoses");
 		LanguageRegistry.addName(staffOfMoses, "Staff Of Moses");
 		itemList.add(staffOfMoses);
+		GameRegistry.registerItem(staffOfMoses, "staffOfMoses");
 		((StaffOfMoses)staffOfMoses).passageHalfWidth = passageHalfWidth;
 		((StaffOfMoses)staffOfMoses).maxPassageLength = passageLength;
 		((StaffOfMoses)staffOfMoses).bloodPuddleRadius = bloodPuddleRadius;
@@ -127,6 +113,7 @@ public class MosesMod {
 		burntStaffOfMoses = new BurntStaffOfMoses(burntStaffOfMosesId).setCreativeTab(CreativeTabs.tabTools).setUnlocalizedName("burntStaffOfMoses");
 		LanguageRegistry.addName(burntStaffOfMoses, "Burnt Staff Of Moses");
 		itemList.add(burntStaffOfMoses);
+		GameRegistry.registerItem(burntStaffOfMoses, "burntStaffOfMoses");
 		((BurntStaffOfMoses)burntStaffOfMoses).passageHalfWidth = passageHalfWidth;
 		((BurntStaffOfMoses)burntStaffOfMoses).maxPassageLength = passageLength;
 		((BurntStaffOfMoses)burntStaffOfMoses).bloodPuddleRadius = bloodPuddleRadius;
@@ -143,87 +130,10 @@ public class MosesMod {
 		GameRegistry.registerBlock(blockBlood, "blood");
 		LanguageRegistry.addName(blockBlood, "Blood");
 		
-		proxy.registerRenderers();
-		TickRegistry.registerTickHandler(tickHandler, Side.CLIENT);
-		TickRegistry.registerTickHandler(tickHandler, Side.SERVER);
+		proxy.init();
+		ItemWatcher serverItemWatcher = new ItemWatcher();
+		MinecraftForge.EVENT_BUS.register(serverItemWatcher);
+		TickRegistry.registerTickHandler(serverItemWatcher, Side.SERVER);
 		GameRegistry.registerPlayerTracker(new PlayerTracker());
-	}
-	
-	@EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-	}
-	
-	@ForgeSubscribe
-	public void onItemToss(ItemTossEvent event) {
-		ItemStack stack = event.entityItem.getEntityItem(); 
-		if (stack.itemID == Item.stick.itemID) {
-			logger.fine("Tracking a tossed stick.");
-			tossedSticks.add(event.entityItem);
-		} else if (stack.itemID == staffOfMoses.itemID) {
-			logger.fine("Tracking a tossed staff.");
-			tossedStaffs.add(event.entityItem);
-		}
-	}
-	
-	@ForgeSubscribe
-	public void onItemExpire(ItemExpireEvent event) {
-		tossedSticks.remove(event.entityItem);
-	}
-	
-	@ForgeSubscribe
-	public void onItemPickup(EntityItemPickupEvent event) {
-		tossedSticks.remove(event.item);
-	}
-	
-	public class TickHandler implements ITickHandler {
-		@Override
-		public void tickStart(EnumSet<TickType> type, Object... tickData) {
-			if (type.contains(TickType.PLAYER)) {
-				// Turn sticks on fire on leaves into Staff of Moses
-				for (EntityItem stick : tossedSticks) {
-					int x = MathHelper.floor_double(stick.posX);
-					int y = MathHelper.floor_double(stick.posY);
-					int z = MathHelper.floor_double(stick.posZ);
-					boolean foundFire = stick.worldObj.getBlockId(x, y, z) == Block.fire.blockID;
-					boolean foundBush = stick.worldObj.getBlockId(x, y-1, z) == Block.leaves.blockID;
-					if (stick.isBurning() && foundFire && foundBush) {
-						logger.info("Transforming stick into Staff.");
-						tossedSticks.remove(stick);
-						stick.setEntityItemStack(new ItemStack(staffOfMoses));
-						stick.extinguish();
-						stick.worldObj.setBlockToAir(x, y, z);
-						stick.worldObj.playSoundAtEntity(stick, Sound.MOSES.getName(), 1, 1);
-						break;
-					}
-				}
-				// Turn Staff of Moses in lava into Burnt Staff of Moses
-				for (EntityItem staff : tossedStaffs) {
-					int x = MathHelper.floor_double(staff.posX);
-					int y = MathHelper.floor_double(staff.posY);
-					int z = MathHelper.floor_double(staff.posZ);
-					int blockID = staff.worldObj.getBlockId(x, y, z);
-					if (blockID == Block.lavaMoving.blockID || blockID == Block.lavaStill.blockID) {
-						logger.info("Transforming Staff into Burnt Staff.");
-						tossedStaffs.remove(staff);
-						staff.setEntityItemStack(new ItemStack(burntStaffOfMoses));
-						staff.extinguish();
-						staff.worldObj.setBlockToAir(x, y, z);
-						staff.worldObj.playSoundAtEntity(staff, Sound.BURNT_STAFF.getName(), 1, 1);
-						break;
-					}
-				}
-			}
-		}
-		@Override
-		public void tickEnd(EnumSet<TickType> type, Object... tickData) {
-		}
-		@Override
-		public EnumSet<TickType> ticks() {
-			return EnumSet.of(TickType.PLAYER);
-		}
-		@Override
-		public String getLabel() {
-			return null;
-		}
 	}
 }

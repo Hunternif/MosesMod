@@ -6,7 +6,8 @@ import net.minecraftforge.event.ForgeSubscribe;
 
 public class MosesClientProxy extends MosesCommonProxy {
 	@Override
-	public void registerSounds() {
+	public void preInit() {
+		super.preInit();
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 	

@@ -1,6 +1,6 @@
 package hunternif.mc.moses;
 
 public class MosesCommonProxy {
-	public void registerRenderers() {}
-	public void registerSounds() {}
+	public void preInit() {}
+	public void init() {}
 }
