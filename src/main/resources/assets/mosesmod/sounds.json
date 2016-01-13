@@ -1,0 +1,44 @@
+{
+  "blood": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "blood"}
+	]
+  },
+  "moses": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "moses"}
+	]
+  },
+  "burnt_staff": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "burnt_staff"}
+	]
+  },
+  "sea_parting": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "sea_parting"}
+	]
+  },
+  "sea_closing": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "sea_closing"}
+	]
+  },
+  "lava_parting": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "lava_parting"}
+	]
+  },
+  "lava_closing": {
+    "category": "ambient",
+	"sounds": [
+	  {"name": "lava_closing"}
+	]
+  }
+}

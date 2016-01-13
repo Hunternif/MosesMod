@@ -1,52 +1,37 @@
-#################
-## Modding files
-#################
-*.log
-release/
+# Build dirs:
+bin
+release
+dist
+build
+run
 
-#################
-## Eclipse
-#################
+# Gradle
+.gradle
 
-*.pydevproject
-# .project
+## IDE
+
+# IntelliJ IDEA
+out
+*.iml
+*.ipr
+*.iws
+.idea
+
+# Eclipse
+*.launch
+.settings
 .metadata
-bin/
-tmp/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-# .classpath
-# .settings/
-.loadpath
+.classpath
+.project
+eclipse
 
-# External tool builders
-.externalToolBuilders/
+# NetBeans
+nbproject
 
-# Locally stored "Eclipse launch configurations"
-#*.launch
+# ViM
+.*.sw[a-p]
 
-# CDT-specific
-.cproject
-
-# PDT-specific
-.buildpath
-
-#############
-## Windows detritus
-#############
-
-# Windows image file caches
+# Garbage
 Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Mac crap
-.DS_Store
+*.log
+*.bak

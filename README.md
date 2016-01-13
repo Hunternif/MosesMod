@@ -10,13 +10,6 @@ As people have suggested, there is now a staff that parts both water and lava. I
 
 This mod should work in single player and multiplayer.
 
-Building
---------
-
-1. Check out the project and import it into a workspace with the project Minecraft.
-2. Create a copy of the file `local.properties.example`, rename it to `local.properties` (Git ignores it) and change the properties to valid paths on your computer. The paths are either absolute or relative to the project folder.
-3. Run the Ant script `build.xml`. By default it will create a release build, deobfuscated build and a zip file with the JavaDocs. Creation of JavaDocs will fail unless you run Ant in a JDK (instead of a simple JRE), but it will not affect the release builds.
-
 TODO Features
 -------------
 
