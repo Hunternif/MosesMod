@@ -35,10 +35,10 @@ public class TransparentBlock extends Block {
         return 0;
     }
 	
-	/*@Override
+	@Override
 	public int getRenderType() {
         return -1;
-    }*/
+    }
 	
 	@Override
 	public boolean isCollidable() {
@@ -54,7 +54,6 @@ public class TransparentBlock extends Block {
 	@Override
 	public void registerBlockIcons(IIconRegister p_149651_1_) {
 		// Nop
-		// TODO: when placing blocks inside a pink-and-black-textured block is spawned at player location.
 	}
 
 }
