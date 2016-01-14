@@ -109,6 +109,8 @@ public class MosesMod {
 		MinecraftForge.EVENT_BUS.register(serverItemWatcher);
 		FMLCommonHandler.instance().bus().register(serverItemWatcher);
 		
-		MinecraftForge.EVENT_BUS.register(new PlayerWatcher());
+		PlayerWatcher playerWatcher = new PlayerWatcher();
+		MinecraftForge.EVENT_BUS.register(playerWatcher);
+		FMLCommonHandler.instance().bus().register(playerWatcher);
 	}
 }

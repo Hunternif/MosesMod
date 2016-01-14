@@ -6,8 +6,6 @@ import hunternif.mc.moses.util.BlockUtil;
 import hunternif.mc.moses.util.IntVec3;
 import hunternif.mc.moses.util.SoundPoint;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,14 +15,16 @@ import net.minecraft.block.Block;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
+import com.google.common.collect.Sets;
+
 public class MosesBlockProvider {
-	private Map<World, ConcurrentHashMap<IntVec3, MosesBlockData>> worldsMap = new ConcurrentHashMap<World, ConcurrentHashMap<IntVec3, MosesBlockData>>();
-	private ConcurrentHashMap<Integer /*player entityId*/, Set<MosesBlockData>> ownedBlocks = new ConcurrentHashMap<Integer, Set<MosesBlockData>>(100000);
+	private Map<World, Map<IntVec3, MosesBlockData>> worldsMap = new ConcurrentHashMap<>();
+	private Map<Integer /*player entityId*/, Map<World, Set<MosesBlockData>>> ownedBlocks = new ConcurrentHashMap<>();
 	//TODO implement caching
 	//FIXME optimize, optimize, optimize! Version 0.3 was SO MUCH faster. Try using multi-dimensional (jagged) array instead of the HashMap.
 	
 	public void clearBlockAt(World world, int playerEntityID, IntVec3 coords) {
-		ConcurrentHashMap<IntVec3, MosesBlockData> map = worldsMap.get(world);
+		Map<IntVec3, MosesBlockData> map = worldsMap.get(world);
 		if (map == null) {
 			map = new ConcurrentHashMap<IntVec3, MosesBlockData>();
 			worldsMap.put(world, map);
@@ -41,11 +41,7 @@ public class MosesBlockProvider {
 			map.put(coords.copy(), blockData);
 			world.setBlock(coords.x, coords.y, coords.z, MosesMod.waterBlocker, prevMetadata, 2);
 		}
-		Set<MosesBlockData> ownedByThisPlayer = ownedBlocks.get(Integer.valueOf(playerEntityID));
-		if (ownedByThisPlayer == null) {
-			ownedByThisPlayer = new HashSet<MosesBlockData>();
-			ownedBlocks.put(Integer.valueOf(playerEntityID), ownedByThisPlayer);
-		}
+		Set<MosesBlockData> ownedByThisPlayer = getBlocksOwnedBy(world, playerEntityID);
 		ownedByThisPlayer.add(blockData);
 	}
 	
@@ -57,70 +53,72 @@ public class MosesBlockProvider {
 		return map.get(coords);
 	}
 	
-	public List<MosesBlockData> getBlocksOwnedBy(World world, int playerEntityID) {
-		Set<MosesBlockData> ownedByThisPlayer = ownedBlocks.get(Integer.valueOf(playerEntityID));
-		return ownedByThisPlayer == null ? null : new ArrayList<MosesBlockData>(ownedByThisPlayer);
-		/*ConcurrentHashMap<IntVec3, MosesBlockData> map = worldsMap.get(world);
-		if (map == null) {
-			return null;
+	public Set<MosesBlockData> getBlocksOwnedBy(World world, int playerEntityID) {
+		Map<World, Set<MosesBlockData>> worldBlocks = ownedBlocks.get(playerEntityID);
+		if (worldBlocks == null) {
+			worldBlocks = new ConcurrentHashMap<>();
+			ownedBlocks.put(playerEntityID, worldBlocks);
 		}
-		List <MosesBlockData> result = new ArrayList<MosesBlockData>();
-		for (MosesBlockData data : map.values()) {
-			if (data.isSoleOwner(playerEntityID)) {
-				result.add(data);
-			}
+		Set<MosesBlockData> blocks = worldBlocks.get(world);
+		if (blocks == null) {
+			blocks = Sets.newSetFromMap(new ConcurrentHashMap<MosesBlockData, Boolean>());
+			worldBlocks.put(world, blocks);
 		}
-		return result;*/
+		return blocks;
 	}
 	
-	public void restoreAllOwnedBlocksAndPlaySound(World world, int playerEntityID) {
-		ConcurrentHashMap<IntVec3, MosesBlockData> map = worldsMap.get(world);
-		if (map == null) {
-			return;
-		}
-		List<SoundPoint> soundPoints = SoundPoint.initSoundPoints(world);
-		
-		List<MosesBlockData> ownedByThisPlayer = getBlocksOwnedBy(world, playerEntityID);
-		for (MosesBlockData data : ownedByThisPlayer) {
-			if (data.isSoleOwner(playerEntityID)) {
-				// Will clear only if playerEntityID is the sole owner
-				// AND if the space has not been altered,
-				// i.e. no other blocks have been placed there.
-				if (MosesMod.waterBlocker ==
-						world.getBlock(data.coords.x, data.coords.y, data.coords.z)) {
-					world.setBlock(data.coords.x, data.coords.y, data.coords.z, data.prevBlock, data.prevMetadata, 2);
-					map.remove(data.coords);
-					
-					// Check if we hit any player BBs
-					Vec3 vec = data.coords.toVec3();
-					for (SoundPoint sp : soundPoints) {
-						if (sp.expandedAABB.isVecInside(vec)) {
-							double distance = data.coords.toVec3().distanceTo(Vec3.createVectorHelper(sp.player.posX, sp.player.posY, sp.player.posZ));
-							if (sp.coords == null || distance < sp.distanceToPlayer) {
-								sp.coords = data.coords.copy();
-								sp.distanceToPlayer = distance;
-								sp.block = world.getBlock(sp.coords.x, sp.coords.y, sp.coords.z);
+	/** Will restore blocks and play sound in all worlds. */
+	public void restoreAllOwnedBlocksAndPlaySound(int playerEntityID) {
+		for (World world : worldsMap.keySet()) {
+			Map<IntVec3, MosesBlockData> map = worldsMap.get(world);
+			List<SoundPoint> soundPoints = SoundPoint.initSoundPoints(world);
+			
+			Map<World, Set<MosesBlockData>> playerOwnedWorlds = ownedBlocks.get(playerEntityID);
+			if (playerOwnedWorlds == null) continue;
+			Set<MosesBlockData> playerOwnedBlocks = playerOwnedWorlds.get(world);
+			if (playerOwnedBlocks == null) continue;
+			for (MosesBlockData data : playerOwnedBlocks) {
+				if (data.isSoleOwner(playerEntityID)) {
+					// Will clear only if playerEntityID is the sole owner
+					// AND if the space has not been altered,
+					// i.e. no other blocks have been placed there.
+					if (MosesMod.waterBlocker ==
+							world.getBlock(data.coords.x, data.coords.y, data.coords.z)) {
+						world.setBlock(data.coords.x, data.coords.y, data.coords.z, data.prevBlock, data.prevMetadata, 2);
+						map.remove(data.coords);
+						
+						// Check if we hit any player BBs
+						Vec3 vec = data.coords.toVec3();
+						for (SoundPoint sp : soundPoints) {
+							if (sp.expandedAABB.isVecInside(vec)) {
+								double distance = data.coords.toVec3().distanceTo(Vec3.createVectorHelper(sp.player.posX, sp.player.posY, sp.player.posZ));
+								if (sp.coords == null || distance < sp.distanceToPlayer) {
+									sp.coords = data.coords.copy();
+									sp.distanceToPlayer = distance;
+									sp.block = world.getBlock(sp.coords.x, sp.coords.y, sp.coords.z);
+								}
 							}
 						}
 					}
+				} else {
+					// Otherwise just attempt to disown this cleared block
+					data.removeOwner(playerEntityID);
 				}
-			} else {
-				// Otherwise just attempt to disown this cleared block
-				data.removeOwner(playerEntityID);
+			}
+			playerOwnedWorlds.remove(world);
+			
+			// Remove the SoundPoints which are too close
+			SoundPoint.optimizeSoundPoints(soundPoints);
+			
+			// Play all sounds
+			for (SoundPoint sp : soundPoints) {
+				if (sp.coords != null) {
+					boolean isLava = BlockUtil.isLava(sp.block);
+					String sound = isLava ? Sound.LAVA_CLOSING.getName() : Sound.SEA_CLOSING.getName();
+					world.playSoundEffect(sp.coords.x, sp.coords.y, sp.coords.z, sound, 1, 1);
+				}
 			}
 		}
-		ownedBlocks.put(Integer.valueOf(playerEntityID), new HashSet<MosesBlockData>());
-		
-		// Remove the SoundPoints which are too close
-		SoundPoint.optimizeSoundPoints(soundPoints);
-		
-		// Play all sounds
-		for (SoundPoint sp : soundPoints) {
-			if (sp.coords != null) {
-				boolean isLava = BlockUtil.isLava(sp.block);
-				String sound = isLava ? Sound.LAVA_CLOSING.getName() : Sound.SEA_CLOSING.getName();
-				world.playSoundEffect(sp.coords.x, sp.coords.y, sp.coords.z, sound, 1, 1);
-			}
-		}
+		ownedBlocks.remove(playerEntityID);
 	}
 }

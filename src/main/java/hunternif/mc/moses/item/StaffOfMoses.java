@@ -116,7 +116,7 @@ public class StaffOfMoses extends Item {
 			}
 		} else {
 			// Close all passages
-			MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(world, player.getEntityId());
+			MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(player.getEntityId());
 		}
 		return itemStack;
 	}

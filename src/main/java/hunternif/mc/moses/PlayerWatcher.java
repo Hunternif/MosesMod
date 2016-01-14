@@ -1,6 +1,9 @@
 package hunternif.mc.moses;
 
+import hunternif.mc.moses.util.Log;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.MinecraftException;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.world.WorldEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
@@ -15,19 +18,23 @@ public class PlayerWatcher {
 
 	@SubscribeEvent
 	public void onPlayerLogout(PlayerLoggedOutEvent event) {
-		//TODO: Test player logout. This should work in SMP
-		MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(
-				event.player.worldObj, event.player.getEntityId());
+		// This is for multiplayer
+		Log.info("Player %s logged out. Restoring their passages...", event.player.getGameProfile().getName());
+		MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(event.player.getEntityId());
 	}
 	
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void onWorldUnload(WorldEvent.Unload event) {
-		// This is for SP
+		// This is for singleplayer
 		if (!event.world.isRemote) {
-			MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(
-					event.world, Minecraft.getMinecraft().thePlayer.getEntityId());
-			//TODO: blocks are restored but not saved when the player exits.
+			Log.info("Exiting world. Restoring passages...");
+			MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(Minecraft.getMinecraft().thePlayer.getEntityId());
+			try {
+				((WorldServer) event.world).saveAllChunks(true, null);
+			} catch (MinecraftException ex) {
+				Log.error(ex, "Saving world after restoring passages");
+			}
 		}
 	}
 
