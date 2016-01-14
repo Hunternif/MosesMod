@@ -17,6 +17,9 @@ buildscript {
 
 apply plugin: 'forge'
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
 version = mcversion + '-' + version_major + '.' + version_minor + '.' + version_patch
 group= "hunternif.mc.moses" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "mosesmod"
@@ -66,21 +69,4 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
-}
-
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'deobf'
-}
-
-task sourceJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
-tasks.build.dependsOn('sourceJar', 'deobfJar')
-
-artifacts {
-	archives deobfJar 
-	archives sourceJar
 }
