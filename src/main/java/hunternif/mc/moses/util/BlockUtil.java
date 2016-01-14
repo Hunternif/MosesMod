@@ -2,18 +2,17 @@ package hunternif.mc.moses.util;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 public final class BlockUtil {
 	public static boolean isSolid(World world, Vec3 vec) {
-		IntVec3 intVec = new IntVec3(vec);
-		return world.getBlock(intVec.x, intVec.y, intVec.z).getMaterial().isSolid();
+		return world.getBlockState(new BlockPos(vec)).getBlock().getMaterial().isSolid();
 	}
 	
 	public static boolean isAir(World world, Vec3 vec) {
-		IntVec3 intVec = new IntVec3(vec);
-		return world.isAirBlock(intVec.x, intVec.y, intVec.z);
+		return world.isAirBlock(new BlockPos(vec));
 	}
 	
 	public static boolean isWater(Block block) {
@@ -25,12 +24,11 @@ public final class BlockUtil {
 	}
 	
 	public static Block getBlock(World world, Vec3 vec) {
-		IntVec3 intVec = new IntVec3(vec);
-		return world.getBlock(intVec.x, intVec.y, intVec.z);
+		return world.getBlockState(new BlockPos(vec)).getBlock();
 	}
 	
-	public static final Vec3 UNIT_Y_UP = Vec3.createVectorHelper(0, 1, 0);
-	public static final Vec3 UNIT_Y_DOWN = Vec3.createVectorHelper(0, -1, 0);
+	public static final Vec3 UNIT_Y_UP = new Vec3(0, 1, 0);
+	public static final Vec3 UNIT_Y_DOWN = new Vec3(0, -1, 0);
 	
 	/**
 	 * Returns an array of (halfWidth*2 + 1) vectors parallel to lookXZ and

@@ -11,7 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -35,11 +36,13 @@ public class MosesBlockProvider {
 			blockData.addOwner(playerEntityID);
 		} else {
 			// If the block was not cleared and owned before, clear it now
-			Block prevBlock = world.getBlock(coords.x, coords.y, coords.z);
-			int prevMetadata = world.getBlockMetadata(coords.x, coords.y, coords.z);
-			blockData = new MosesBlockData(coords.copy(), prevBlock, prevMetadata, playerEntityID);
+			BlockPos pos = new BlockPos(coords.x, coords.y, coords.z);
+			IBlockState blockState = world.getBlockState(pos);
+			int prevMetadata = blockState.getBlock().getMetaFromState(blockState);
+			blockData = new MosesBlockData(coords.copy(), blockState.getBlock(), prevMetadata, playerEntityID);
 			map.put(coords.copy(), blockData);
-			world.setBlock(coords.x, coords.y, coords.z, MosesMod.waterBlocker, prevMetadata, 2);
+			blockState = MosesMod.waterBlocker.getStateFromMeta(prevMetadata);
+			world.setBlockState(pos, blockState, 2);
 		}
 		Set<MosesBlockData> ownedByThisPlayer = getBlocksOwnedBy(world, playerEntityID);
 		ownedByThisPlayer.add(blockData);
@@ -82,20 +85,21 @@ public class MosesBlockProvider {
 					// Will clear only if playerEntityID is the sole owner
 					// AND if the space has not been altered,
 					// i.e. no other blocks have been placed there.
-					if (MosesMod.waterBlocker ==
-							world.getBlock(data.coords.x, data.coords.y, data.coords.z)) {
-						world.setBlock(data.coords.x, data.coords.y, data.coords.z, data.prevBlock, data.prevMetadata, 2);
+					BlockPos pos = new BlockPos(data.coords.x, data.coords.y, data.coords.z);
+					if (MosesMod.waterBlocker == world.getBlockState(pos).getBlock()) {
+						IBlockState state = data.prevBlock.getStateFromMeta(data.prevMetadata);
+						world.setBlockState(pos, state, 2);
 						map.remove(data.coords);
 						
 						// Check if we hit any player BBs
 						Vec3 vec = data.coords.toVec3();
 						for (SoundPoint sp : soundPoints) {
 							if (sp.expandedAABB.isVecInside(vec)) {
-								double distance = data.coords.toVec3().distanceTo(Vec3.createVectorHelper(sp.player.posX, sp.player.posY, sp.player.posZ));
+								double distance = data.coords.toVec3().distanceTo(new Vec3(sp.player.posX, sp.player.posY, sp.player.posZ));
 								if (sp.coords == null || distance < sp.distanceToPlayer) {
 									sp.coords = data.coords.copy();
 									sp.distanceToPlayer = distance;
-									sp.block = world.getBlock(sp.coords.x, sp.coords.y, sp.coords.z);
+									sp.block = world.getBlockState(new BlockPos(sp.coords.x, sp.coords.y, sp.coords.z)).getBlock();
 								}
 							}
 						}

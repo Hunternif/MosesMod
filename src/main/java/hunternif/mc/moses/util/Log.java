@@ -1,8 +1,9 @@
 package hunternif.mc.moses.util;
 
+import net.minecraftforge.fml.common.FMLLog;
+
 import org.apache.logging.log4j.Level;
 
-import cpw.mods.fml.common.FMLLog;
 
 /**
  * A simple logging helper that is not directly dependent on any mod classes.

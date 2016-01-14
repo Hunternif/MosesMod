@@ -4,26 +4,13 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 
 public class TransparentBlock extends Block {
 
+	//TODO: fix lighting at the sea bottom.
 	public TransparentBlock(Material material) {
 		super(material);
 	}
-	
-	@Override
-	public boolean shouldSideBeRendered(IBlockAccess par1IBlockAccess, int par2, int par3, int par4, int par5) {
-		return false;
-	}
-	
-	@Override
-	public boolean renderAsNormalBlock() {
-        return false;
-    }
 	
 	@Override
 	public boolean isOpaqueCube() {
@@ -44,16 +31,5 @@ public class TransparentBlock extends Block {
 	public boolean isCollidable() {
         return false;
     }
-	
-	@Override
-	public AxisAlignedBB getCollisionBoundingBoxFromPool(World par1World, int par2, int par3, int par4)
-    {
-        return null;
-    }
-	
-	@Override
-	public void registerBlockIcons(IIconRegister p_149651_1_) {
-		// Nop
-	}
 
 }

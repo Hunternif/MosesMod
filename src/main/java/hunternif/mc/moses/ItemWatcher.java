@@ -11,13 +11,13 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.Phase;
-import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 
 /**
  * Watches tossed sticks to convert them into Staffs when on fire above a block
@@ -58,16 +58,14 @@ public class ItemWatcher {
 			Iterator<EntityItem> iter = tossedSticks.iterator();
 			while (iter.hasNext()) {
 				EntityItem stick = iter.next();
-				int x = MathHelper.floor_double(stick.posX);
-				int y = MathHelper.floor_double(stick.posY);
-				int z = MathHelper.floor_double(stick.posZ);
-				boolean foundFire = stick.worldObj.getBlock(x, y, z) == Blocks.fire;
-				Block blockBelow = stick.worldObj.getBlock(x, y-1, z);
+				BlockPos pos = stick.getPosition();
+				boolean foundFire = stick.worldObj.getBlockState(pos).getBlock() == Blocks.fire;
+				Block blockBelow = stick.worldObj.getBlockState(pos.down()).getBlock();
 				boolean foundBush = blockBelow == Blocks.leaves || blockBelow == Blocks.leaves2;
 				if (stick.isBurning() && foundFire && foundBush) {
 					Log.info("Transforming stick into Staff.");
 					iter.remove();
-					stick.worldObj.setBlockToAir(x, y, z);
+					stick.worldObj.setBlockToAir(pos);
 					stick.worldObj.playSoundAtEntity(stick, Sound.MOSES.getName(), 1, 1);
 					/*stick.extinguish();
 					stick.setEntityItemStack(new ItemStack(MosesMod.staffOfMoses));*/
@@ -81,14 +79,12 @@ public class ItemWatcher {
 			iter = tossedStaffs.iterator();
 			while (iter.hasNext()) {
 				EntityItem staff = iter.next();
-				int x = MathHelper.floor_double(staff.posX);
-				int y = MathHelper.floor_double(staff.posY);
-				int z = MathHelper.floor_double(staff.posZ);
-				Block block = staff.worldObj.getBlock(x, y, z);
+				BlockPos pos = staff.getPosition();
+				Block block = staff.worldObj.getBlockState(pos).getBlock();
 				if (block == Blocks.lava || block == Blocks.flowing_lava) {
 					Log.info("Transforming Staff into Burnt Staff.");
 					iter.remove();
-					staff.worldObj.setBlockToAir(x, y, z);
+					staff.worldObj.setBlockToAir(pos);
 					staff.worldObj.playSoundAtEntity(staff, Sound.BURNT_STAFF.getName(), 1, 1);
 					/*staff.extinguish();
 					staff.setEntityItemStack(new ItemStack(MosesMod.burntStaffOfMoses));*/

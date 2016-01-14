@@ -57,6 +57,6 @@ public class IntVec3 {
 	}
 	
 	public Vec3 toVec3() {
-		return Vec3.createVectorHelper(x, y, z);
+		return new Vec3(x, y, z);
 	}
 }

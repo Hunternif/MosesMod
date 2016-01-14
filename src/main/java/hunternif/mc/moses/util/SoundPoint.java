@@ -23,7 +23,7 @@ public class SoundPoint {
 		for (Object curPlayer : world.playerEntities) {
 			SoundPoint sp = new SoundPoint();
 			sp.player = (EntityPlayer) curPlayer;
-			sp.expandedAABB = sp.player.boundingBox.expand(12, 10, 12);
+			sp.expandedAABB = sp.player.getEntityBoundingBox().expand(12, 10, 12);
 			soundPoints.add(sp);
 		}
 		return soundPoints;

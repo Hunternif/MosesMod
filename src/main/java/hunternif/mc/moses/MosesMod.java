@@ -10,20 +10,21 @@ import hunternif.mc.moses.util.Log;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.Mod.Instance;
-import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.Mod.Instance;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 @Mod(modid=MosesMod.ID, name=MosesMod.NAME, version=MosesMod.VERSION)
 public class MosesMod {
@@ -94,14 +95,15 @@ public class MosesMod {
 		burntStaffOfMoses.maxPassageLength = passageLength;
 		burntStaffOfMoses.bloodPuddleRadius = bloodPuddleRadius;
 		
-		waterBlocker = new TransparentBlock(materialWaterBlocker).setBlockName("mosesWaterBlocker").setStepSound(Block.soundTypeGlass).setCreativeTab(CreativeTabs.tabMisc);
+		waterBlocker = new TransparentBlock(materialWaterBlocker).setUnlocalizedName("mosesWaterBlocker").setStepSound(Block.soundTypeGlass).setCreativeTab(CreativeTabs.tabMisc);
 		GameRegistry.registerBlock(waterBlocker, "mosesWaterBlocker");
 		
-		blood = new Fluid("mosesBlood");
+		//TODO figure out model files for liquids
+		blood = new Fluid("mosesBlood", new ResourceLocation(MosesMod.ID, "blocks/blood_still"), new ResourceLocation(MosesMod.ID, "blocks/blood_flow"));
 		
 		FluidRegistry.registerFluid(blood);
 		blockBlood = new BlockBlood(blood, Material.water);
-		blockBlood.setBlockName("mosesBlood");
+		blockBlood.setUnlocalizedName("mosesBlood");
 		GameRegistry.registerBlock(blockBlood, "mosesBlood");
 		
 		proxy.init();

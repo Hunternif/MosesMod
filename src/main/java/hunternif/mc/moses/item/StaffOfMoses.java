@@ -13,19 +13,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class StaffOfMoses extends Item {
 	public double playerReach = 5;
@@ -50,13 +49,6 @@ public class StaffOfMoses extends Item {
 		return isRemovableBlock(block) || block == MosesMod.waterBlocker;
 	}
 	
-	
-	@Override
-	@SideOnly(Side.CLIENT)
-	public void registerIcons(IIconRegister iconRegister) {
-		this.itemIcon = iconRegister.registerIcon(MosesMod.ID + ":" + getUnlocalizedName().substring("item.".length()));
-	}
-	
 	@Override
 	public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player) {
 		if (world.isRemote) {
@@ -72,15 +64,15 @@ public class StaffOfMoses extends Item {
         }
         Block hitBlock = BlockUtil.getBlock(world, rayPosition);
         if (!BlockUtil.isAir(world, rayPosition) && isRemovableBlock(hitBlock)) {
-        	IntVec3 coords = new IntVec3(rayPosition);
+        	BlockPos coords = new BlockPos(rayPosition).up();
 			// Do sea parting
 			// 1. Find surface
 			while (true) {
-				Block block = world.getBlock(coords.x, coords.y+1, coords.z);
+				Block block = world.getBlockState(coords).getBlock();
 				if (!isRemovableBlock(block)) {
 					break;
-				} else if (coords.y < world.getHeight() - 1){
-					coords.y++;
+				} else if (coords.getY() < world.getHeight()){
+					coords = coords.up();
 				} else {
 					break;
 				}
@@ -89,12 +81,12 @@ public class StaffOfMoses extends Item {
 			List<SoundPoint> soundPoints = SoundPoint.initSoundPoints(world);
 			
 			// 2. Perform the wonder of sea parting
-			Vec3 lookXZ = Vec3.createVectorHelper(-MathHelper.sin(player.rotationYaw*(float)Math.PI/180f), 0, MathHelper.cos(player.rotationYaw*(float)Math.PI/180f));
-			Vec3 start = Vec3.createVectorHelper((double)coords.x+0.5, (double)coords.y+0.5, (double)coords.z+0.5);
+			Vec3 lookXZ = new Vec3(-MathHelper.sin(player.rotationYaw*(float)Math.PI/180f), 0, MathHelper.cos(player.rotationYaw*(float)Math.PI/180f));
+			Vec3 start = new Vec3((double)coords.getX()+0.5, (double)coords.getY()+0.5, (double)coords.getZ()+0.5);
 			
 			// Make a short passage in the opposite direction to reach the player:
 			Vec3 startABitAhead = start.addVector(lookXZ.xCoord*2, 0, lookXZ.zCoord*2);
-			Vec3 reversedLookXZ = Vec3.createVectorHelper(-lookXZ.xCoord, 0, -lookXZ.zCoord);
+			Vec3 reversedLookXZ = new Vec3(-lookXZ.xCoord, 0, -lookXZ.zCoord);
 			Vec3[] wavefront = BlockUtil.buildFlatWaveFront(startABitAhead, reversedLookXZ, passageHalfWidth);
 			createPassage(world, player, reversedLookXZ, lookBehindPassageLength, wavefront, soundPoints);
 			
@@ -121,31 +113,32 @@ public class StaffOfMoses extends Item {
 		return itemStack;
 	}
 	
-	public void removeWaterBelow(World world, EntityPlayer player, IntVec3 coords, List<SoundPoint> soundPoints) {
-		if (world.getBlock(coords.x, coords.y+1, coords.z) == Blocks.waterlily) {
-			world.setBlock(coords.x, coords.y+1, coords.z, Blocks.air, 0, 2);
-			EntityItem entityLily = new EntityItem(world, (double)coords.x+0.5, (double)coords.y+1, (double)coords.z+0.5, new ItemStack(Blocks.waterlily));
-			entityLily.delayBeforeCanPickup = 10;
+	public void removeWaterBelow(World world, EntityPlayer player, BlockPos coords, List<SoundPoint> soundPoints) {
+		BlockPos pos = coords.up();
+		if (world.getBlockState(pos).getBlock() == Blocks.waterlily) {
+			world.setBlockState(pos, Blocks.air.getDefaultState(), 2);
+			EntityItem entityLily = new EntityItem(world, (double)coords.getX()+0.5, (double)coords.getY(), (double)coords.getZ()+0.5, new ItemStack(Blocks.waterlily));
 			world.spawnEntityInWorld(entityLily);
 		}
-		IntVec3 coordsCopy = coords.copy();
+		pos = pos.down();
 		while (true) {
-			Block block = world.getBlock(coordsCopy.x, coordsCopy.y, coordsCopy.z);
+			Block block = world.getBlockState(pos).getBlock();
 			if (isRemovableOrBlockerBlock(block)) {
-				clearWaterBlock(world, player, coordsCopy, soundPoints);
+				clearWaterBlock(world, player, pos, soundPoints);
 			} else if (block != Blocks.air) {
 				break;
 			}
-			coordsCopy.y--;
+			pos = pos.down();
 		}
 	}
 	
-	public void clearWaterBlock(World world, EntityPlayer player, IntVec3 coords, List<SoundPoint> soundPoints) {
-		Block block = world.getBlock(coords.x, coords.y, coords.z);
+	public void clearWaterBlock(World world, EntityPlayer player, BlockPos pos, List<SoundPoint> soundPoints) {
+		Block block = world.getBlockState(pos).getBlock();
+		IntVec3 coords = new IntVec3(pos.getX(), pos.getY(), pos.getZ());
 		if (isRemovableOrBlockerBlock(block)) {
 			MosesMod.mosesBlockProvider.clearBlockAt(world, player.getEntityId(), coords);
 			if (isRemovableBlock(block)) {
-				Vec3 vector = Vec3.createVectorHelper(coords.x, coords.y, coords.z);
+				Vec3 vector = new Vec3(coords.x, coords.y, coords.z);
 				// Check if we hit any player BBs, but only for non-empty blocks
 				if (block != MosesMod.waterBlocker) {
 					for (SoundPoint sp : soundPoints) {
@@ -184,30 +177,28 @@ public class StaffOfMoses extends Item {
 		} else {
 			return true;
 		}
-		Vec3 position = Vec3.createVectorHelper(entityLiving.posX, entityLiving.posY, entityLiving.posZ);
+		Vec3 position = new Vec3(entityLiving.posX, entityLiving.posY, entityLiving.posZ);
 		// Because in server worlds the Y coordinate of a player is his feet's coordinate, without yOffset.
 		position = position.addVector(0, 1.62D, 0);
 		Vec3 look = entityLiving.getLookVec();
         Vec3 reach = position.addVector(look.xCoord * playerReach, look.yCoord * playerReach, look.zCoord * playerReach);
         MovingObjectPosition hit = entityLiving.worldObj.rayTraceBlocks(position, reach, true); //raytrace
         if (hit != null) {
-        	int x = hit.blockX;
-			int y = hit.blockY;
-			int z = hit.blockZ;
-	        Block hitBlock = entityLiving.worldObj.getBlock(x, y, z);
+        	BlockPos pos = hit.getBlockPos();
+	        Block hitBlock = entityLiving.worldObj.getBlockState(pos).getBlock();
 	        if (hitBlock == Blocks.stone) {
 	        	// Makes a source of water out of stone:
-        		entityLiving.worldObj.setBlock(x, y, z, Blocks.flowing_water, 0, 3);
-        		Log.info(String.format("Made water out of stone at (%d, %d, %d)", x, y, z));
+        		entityLiving.worldObj.setBlockState(pos, Blocks.flowing_water.getDefaultState(), 3);
+        		Log.info(String.format("Made water out of stone at %s", pos));
 	        } else if (BlockUtil.isWater(hitBlock)) {
 	        	// Turn water into blood:
-        		replaceWaterWithBlood(entityLiving.worldObj, x, z);
-        		Log.info(String.format("Replaced water with blood at (%d, %d)", x, z));
-        		entityLiving.worldObj.playSoundEffect(x, y, z, Sound.BLOOD.getName(), 0.7f, 1);
+        		replaceWaterWithBlood(entityLiving.worldObj, pos.getX(), pos.getZ());
+        		Log.info(String.format("Replaced water with blood at (%d, %d)", pos.getX(), pos.getZ()));
+        		entityLiving.worldObj.playSoundEffect(pos.getX(), pos.getY(), pos.getZ(), Sound.BLOOD.getName(), 0.7f, 1);
 	        } else if (hitBlock == MosesMod.blockBlood) {
 	        	// Turn blood back into water:
-	        	replaceBloodWithWater(entityLiving.worldObj, x, z);
-        		Log.info(String.format("Replaced blood with water at (%d, %d)", x, z));
+	        	replaceBloodWithWater(entityLiving.worldObj, pos.getX(), pos.getZ());
+        		Log.info(String.format("Replaced blood with water at (%d, %d)", pos.getX(), pos.getZ()));
 	        }
         }
 		return false;
@@ -219,7 +210,7 @@ public class StaffOfMoses extends Item {
 		for (int i = 0; i < wavefront.length; i++) {
 			while (wavefront[i].distanceTo(startPos) < maxPassageLength
 					&& !BlockUtil.isSolid(world, wavefront[i])) {
-				removeWaterBelow(world, player, new IntVec3(wavefront[i]), soundPoints);
+				removeWaterBelow(world, player, new BlockPos(wavefront[i]), soundPoints);
 				// We move half-step at a time so that there won't be any omitted columns of water left behind.
 				wavefront[i] = wavefront[i].addVector(lookXZ.xCoord/2, 0, lookXZ.zCoord/2);
 			}
@@ -227,7 +218,7 @@ public class StaffOfMoses extends Item {
 	}
 	
 	public static Vec3 getPlayerPosition(EntityPlayer player) {
-		Vec3 position = Vec3.createVectorHelper(player.posX, player.posY, player.posZ);
+		Vec3 position = new Vec3(player.posX, player.posY, player.posZ);
 		if (!player.worldObj.isRemote) {
 			// Because in server worlds the Y coordinate of a player is his feet's coordinate, without yOffset.
 			position = position.addVector(0, 1.62D, 0);
@@ -247,11 +238,13 @@ public class StaffOfMoses extends Item {
 		}
 	}
 	private static void replaceWaterWithBloodInColumn(World world, int x, int z) {
-		for (int y = 0; y < world.getHeight(); y++) {
-			Material material = world.getBlock(x, y, z).getMaterial();
+		for (BlockPos pos = new BlockPos(x, 0, z); pos.getY() < world.getHeight(); pos = pos.up()) {
+			IBlockState state = world.getBlockState(pos);
+			Material material = state.getBlock().getMaterial();
 			if (material == Material.water) {
-				int metadata = world.getBlockMetadata(x, y, z);
-				world.setBlock(x, y, z, MosesMod.blockBlood, metadata, 3);
+				int metadata = state.getBlock().getMetaFromState(state);
+				state = MosesMod.blockBlood.getStateFromMeta(metadata);
+				world.setBlockState(pos, state, 3);
 			}
 		}
 	}
@@ -267,12 +260,14 @@ public class StaffOfMoses extends Item {
 		}
 	}
 	private static void replaceBloodWithWaterInColumn(World world, int x, int z) {
-		for (int y = 0; y < world.getHeight(); y++) {
-			if (world.getBlock(x, y, z) == MosesMod.blockBlood) {
-				int metadata = world.getBlockMetadata(x, y, z);
-				Block block = MosesMod.blockBlood.isSourceBlock(world, x, y, z) ?
+		for (BlockPos pos = new BlockPos(x, 0, z); pos.getY() < world.getHeight(); pos = pos.up()) {
+			IBlockState state = world.getBlockState(pos);
+			if (state.getBlock() == MosesMod.blockBlood) {
+				int metadata = MosesMod.blockBlood.getMetaFromState(state);
+				Block block = MosesMod.blockBlood.isSourceBlock(world, pos) ?
 						Blocks.water : Blocks.flowing_water;
-				world.setBlock(x, y, z, block, metadata, 3);
+				state = block.getStateFromMeta(metadata);
+				world.setBlockState(pos, state, 3);
 			}
 		}
 	}
