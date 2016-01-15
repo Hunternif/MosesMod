@@ -12,7 +12,7 @@ public class MaterialWaterBlocker extends Material {
 
 	@Override
 	public boolean blocksMovement() {
-		return true;
+		return false;
 	}
 	
 	@Override
@@ -22,6 +22,11 @@ public class MaterialWaterBlocker extends Material {
 	
 	@Override
 	public boolean isSolid() {
+		return false;
+	}
+	
+	@Override
+	public boolean isOpaque() {
 		return false;
 	}
 }

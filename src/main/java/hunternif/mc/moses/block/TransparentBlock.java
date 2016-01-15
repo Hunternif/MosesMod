@@ -4,10 +4,13 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 
 public class TransparentBlock extends Block {
 
-	//TODO: fix lighting at the sea bottom.
 	public TransparentBlock(Material material) {
 		super(material);
 	}
@@ -31,5 +34,10 @@ public class TransparentBlock extends Block {
 	public boolean isCollidable() {
         return false;
     }
+	
+	@Override
+	public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state) {
+		return null;
+	}
 
 }
