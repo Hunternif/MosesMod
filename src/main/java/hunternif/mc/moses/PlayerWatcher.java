@@ -27,7 +27,7 @@ public class PlayerWatcher {
 	@SideOnly(Side.CLIENT)
 	public void onWorldUnload(WorldEvent.Unload event) {
 		// This is for singleplayer
-		if (!event.world.isRemote) {
+		if (!event.world.isRemote && Minecraft.getMinecraft().thePlayer != null) {
 			Log.info("Exiting world. Restoring passages...");
 			MosesMod.mosesBlockProvider.restoreAllOwnedBlocksAndPlaySound(Minecraft.getMinecraft().thePlayer.getEntityId());
 			try {
